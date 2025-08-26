@@ -1,37 +1,46 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+
 import AuthLayout from "../../components/layouts/AuthLayout";
 import Input from "../../components/inputs/Input";
+
 import { validateEmail } from "../../utils/helper";
 import axiosInstance from "../../utils/axiosInstance";
 import { API_PATHS } from "../../utils/apiPaths";
 
+import { UserContext } from "../../context/userContext";
+
 const Login = () => {
+  // State untuk email, password, dan error
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
 
+  // Menyimpan dan mengupdate konteks 
+  const {updateUser} = useContext(UserContext);
+
+  // Menavigasi rute atau path
   const navigate = useNavigate();
 
-  // Handle Login Form Submit
+  // Fungsi untuk menghandle login akun
   const handleLogin = async (e) => {
     e.preventDefault();
 
+    // Validasi form
     if (!validateEmail(email)) {
-      setError("Please enter a valid email address.");
+      setError("Tolong masukkan email anda yang valid.");
       return;
-    }
+    };
 
     if (!password) {
-      setError("Please enter your password.");
+      setError("Tolong masukkan password anda.");
       return;
-    }
+    };
 
     setError("");
 
-    //Login API Call
+    // Request Login untuk mengambil response dari database
     try {
-      console.log(API_PATHS.AUTH.LOGIN);
       const response = await axiosInstance.post(API_PATHS.AUTH.LOGIN, {
         email,
         password,
@@ -41,21 +50,22 @@ const Login = () => {
 
       if (token) {
         localStorage.setItem("token", token);
-      }
+        updateUser(response.data);
+      };
 
-      // Redirect based on user role
+      // Diarahkan ke rute admin atau user dashboard
       if (role === "admin") {
         navigate("/admin/dashboard");
       } else {
         navigate("/user/dashboard");
-      }
+      };
     } catch (error) {
       if (error.response && error.response.data.message) {
-        setError(error.response.data.message);
+        setError("error :", error.response.data.message);
       } else {
-        setError("Something went wrong. Please try again.");
-      }
-    }
+        setError("Ada sesuatu yang salah. Tolong coba lagi.");
+      };
+    };
   };
   return (
     <AuthLayout>
