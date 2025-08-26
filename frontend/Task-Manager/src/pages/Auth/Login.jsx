@@ -16,30 +16,31 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
 
-  // Menyimpan dan mengupdate konteks 
-  const {updateUser} = useContext(UserContext);
+  // Mengupdate konteks
+  const { updateUser } = useContext(UserContext);
 
   // Menavigasi rute atau path
   const navigate = useNavigate();
 
   // Fungsi untuk menghandle login akun
   const handleLogin = async (e) => {
+    // Mencegah reload halaman saat form disubmit
     e.preventDefault();
 
-    // Validasi form
+    // Validasi input
     if (!validateEmail(email)) {
       setError("Tolong masukkan email anda yang valid.");
       return;
-    };
+    }
 
     if (!password) {
       setError("Tolong masukkan password anda.");
       return;
-    };
+    }
 
-    setError("");
+    setError(""); // Reset error
 
-    // Request Login untuk mengambil response dari database
+    // Request ke endpoint Login untuk mengambil response dari database
     try {
       const response = await axiosInstance.post(API_PATHS.AUTH.LOGIN, {
         email,
@@ -51,21 +52,18 @@ const Login = () => {
       if (token) {
         localStorage.setItem("token", token);
         updateUser(response.data);
-      };
+      }
 
       // Diarahkan ke rute admin atau user dashboard
-      if (role === "admin") {
-        navigate("/admin/dashboard");
-      } else {
-        navigate("/user/dashboard");
-      };
+      navigate(role === "admin" ? "/admin/dashboard" : "/user/dashboard");
     } catch (error) {
+      // Menangani error dari server
       if (error.response && error.response.data.message) {
-        setError("error :", error.response.data.message);
+        setError(error.response.data.message);
       } else {
         setError("Ada sesuatu yang salah. Tolong coba lagi.");
-      };
-    };
+      }
+    }
   };
   return (
     <AuthLayout>
